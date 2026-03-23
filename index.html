@@ -1,80 +1,91 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Brianna Three Rex Party</title>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+    }
 
-<title>Brianna Three Rex Party</title>
+    body {
+      position: relative;
+    }
 
-<style>
+    .cover {
+      position: fixed;
+      inset: 0;
+      background: url("cover.jpg") center center / cover no-repeat;
+      z-index: 20;
+      cursor: pointer;
+    }
 
-body{
-margin:0;
-background:black;
-overflow:hidden;
-height:100vh;
-}
+    video {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: black;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity .35s ease;
+    }
 
-video{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-object-fit:contain;
-display:none;
-}
-
-.cover{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:url("cover.jpg") center/cover no-repeat;
-display:flex;
-justify-content:center;
-align-items:center;
-}
-
-</style>
-
+    video.show {
+      opacity: 1;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="cover" id="cover"></div>
+  <div class="cover" id="cover"></div>
 
-<video id="video" loop playsinline webkit-playsinline>
-<source src="video.mp4" type="video/mp4">
-</video>
+  <video id="video" loop playsinline webkit-playsinline preload="auto">
+    <source src="video.mp4" type="video/mp4">
+  </video>
 
-<audio id="music" loop>
-<source src="music.mp3" type="audio/mpeg">
-</audio>
+  <audio id="music" loop preload="auto">
+    <source src="music.mp3" type="audio/mpeg">
+  </audio>
 
-<script>
+  <script>
+    const cover = document.getElementById("cover");
+    const video = document.getElementById("video");
+    const music = document.getElementById("music");
 
-const cover = document.getElementById("cover");
-const video = document.getElementById("video");
-const music = document.getElementById("music");
+    let started = false;
 
-cover.addEventListener("click", start);
+    async function startInvitation() {
+      if (started) return;
+      started = true;
 
-function start(){
+      try {
+        music.currentTime = 0;
+        const musicPromise = music.play();
 
-cover.style.display="none";
+        video.currentTime = 0;
+        const videoPromise = video.play();
 
-video.style.display="block";
+        await Promise.allSettled([musicPromise, videoPromise]);
 
-video.play();
+        video.classList.add("show");
+        cover.style.display = "none";
+      } catch (err) {
+        console.log(err);
+        started = false;
+      }
+    }
 
-music.play();
-
-}
-
-</script>
+    cover.addEventListener("click", startInvitation);
+    cover.addEventListener("touchstart", startInvitation, { passive: true });
+  </script>
 
 </body>
 </html>
