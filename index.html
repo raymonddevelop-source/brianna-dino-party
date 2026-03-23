@@ -10,11 +10,10 @@
             padding: 0;
             height: 100%;
             background: black;
-            font-family: sans-serif;
             overflow: hidden;
         }
 
-        /* El video ahora está siempre "debajo" listo para verse */
+        /* Video siempre listo detrás de la portada */
         video {
             position: fixed;
             top: 0;
@@ -26,7 +25,7 @@
             z-index: 1;
         }
 
-        /* Portada con transición suave */
+        /* Portada limpia (solo tu imagen) */
         #cover {
             position: fixed;
             top: 0;
@@ -36,20 +35,7 @@
             background: url("cover.jpg") center/cover no-repeat;
             z-index: 10;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease; /* Efecto fade out */
-        }
-
-        #cover::after {
-            content: "TOCA PARA EMPEZAR";
-            color: white;
-            background: rgba(0,0,0,0.6);
-            padding: 15px 25px;
-            border-radius: 30px;
-            font-weight: bold;
-            letter-spacing: 1px;
+            transition: opacity 0.4s ease; /* Desvanecimiento suave */
         }
     </style>
 </head>
@@ -70,31 +56,33 @@
         const video = document.getElementById("video");
         const music = document.getElementById("music");
 
-        // Pre-cargar el video para que el primer frame esté listo
-        video.load();
-        music.load();
+        // Intentar precargar los archivos apenas abra la página
+        window.addEventListener('load', () => {
+            video.load();
+            music.load();
+        });
 
-        function start() {
-            // 1. Iniciamos la reproducción inmediatamente
-            // Usamos una promesa simple para ambos
-            const playPromiseAudio = music.play();
-            const playPromiseVideo = video.play();
+        function start(e) {
+            // Evita conflictos entre touch y click
+            if (e) e.preventDefault();
 
-            // 2. Quitamos la portada visualmente de inmediato
+            // 1. Desvanecer la portada visualmente
             cover.style.opacity = "0";
+
+            // 2. Reproducción inmediata y simultánea
+            music.currentTime = 0;
+            video.currentTime = 0;
             
-            // 3. Quitamos la portada del flujo después de la animación para que no estorbe
+            music.play();
+            video.play();
+
+            // 3. Eliminar el elemento del DOM tras el desvanecimiento
             setTimeout(() => {
                 cover.style.display = "none";
-            }, 500);
-
-            // Manejo de errores por si el navegador bloquea algo
-            if (playPromiseAudio !== undefined) {
-                playPromiseAudio.catch(e => console.log("Audio en espera de interacción profunda"));
-            }
+            }, 450);
         }
 
-        // 'pointerdown' es el evento más rápido que existe (antes que el click)
+        // 'pointerdown' es la interacción más rápida (al tacto inicial)
         cover.addEventListener("pointerdown", start);
     </script>
 
