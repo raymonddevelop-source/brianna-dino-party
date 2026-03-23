@@ -1,82 +1,102 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brianna Three Rex Party</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: black;
+            overflow: hidden;
+        }
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: black;
+        }
 
-<title>Brianna Three Rex Party</title>
+        #cover {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("cover.jpg") center/cover no-repeat;
+            z-index: 10;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-<style>
-
-html,body{
-margin:0;
-height:100%;
-background:black;
-overflow:hidden;
-}
-
-video{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-object-fit:contain;
-background:black;
-}
-
-#cover{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:url("cover.jpg") center/cover no-repeat;
-z-index:10;
-cursor:pointer;
-}
-
-</style>
-
+        /* Opcional: un pequeño texto para que el usuario sepa que debe tocar */
+        #cover::after {
+            content: "TOCA PARA EMPEZAR";
+            color: white;
+            font-family: sans-serif;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+    </style>
 </head>
-
 <body>
 
-<video id="video" loop playsinline webkit-playsinline>
-<source src="video.mp4" type="video/mp4">
-</video>
+    <video id="video" loop playsinline webkit-playsinline muted>
+        <source src="video.mp4" type="video/mp4">
+    </video>
 
-<audio id="music">
-<source src="music.mp3" type="audio/mpeg">
-</audio>
+    <audio id="music" loop preload="auto">
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
 
-<div id="cover"></div>
+    <div id="cover"></div>
 
-<script>
+    <script>
+        const cover = document.getElementById("cover");
+        const video = document.getElementById("video");
+        const music = document.getElementById("music");
 
-const cover = document.getElementById("cover");
-const video = document.getElementById("video");
-const music = document.getElementById("music");
+        function start(e) {
+            // Evitamos que el evento se dispare dos veces (click + touch)
+            if (e) e.preventDefault();
 
-function start(){
+            // 1. Ocultar la portada
+            cover.style.display = "none";
 
-cover.style.display="none";
+            // 2. Reiniciar tiempos
+            music.currentTime = 0;
+            video.currentTime = 0;
 
-music.currentTime=0;
-music.play();
+            // 3. Reproducir Audio (La prioridad para el navegador)
+            const playAudio = music.play();
 
-setTimeout(()=>{
-video.currentTime=0;
-video.play();
-},200);
+            if (playAudio !== undefined) {
+                playAudio.then(() => {
+                    // Si el audio arranca, lanzamos el video
+                    video.play();
+                    // Opcional: si quieres que el video tenga su propio audio, 
+                    // quita 'muted' arriba. Si no, déjalo así.
+                }).catch(error => {
+                    console.error("Error al reproducir audio:", error);
+                    // Intento de respaldo si falla
+                    video.play();
+                });
+            }
+        }
 
-}
-
-cover.addEventListener("click",start);
-cover.addEventListener("touchend",start);
-
-</script>
+        // Usamos 'pointerdown' que funciona para mouse y touch de forma unificada
+        cover.addEventListener("pointerdown", start);
+    </script>
 
 </body>
 </html>
