@@ -10,7 +10,7 @@
       margin: 0;
       width: 100%;
       height: 100%;
-      background: #000;
+      background: black;
       overflow: hidden;
     }
 
@@ -18,13 +18,13 @@
       position: relative;
     }
 
-    #video {
+    video {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      background: #000;
+      object-fit: contain;
+      background: black;
     }
 
     #cover {
@@ -32,28 +32,13 @@
       inset: 0;
       background: url("cover.jpg") center center / cover no-repeat;
       z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       cursor: pointer;
     }
 
-    .fake-btn {
-      padding: 16px 34px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.18);
-      border: 1px solid rgba(255,255,255,0.35);
-      color: #fff;
-      font-family: Arial, sans-serif;
-      font-size: 20px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    #cover.hide {
+      opacity: 0;
       pointer-events: none;
-    }
-
-    .hidden {
-      display: none !important;
+      transition: opacity .25s ease;
     }
   </style>
 </head>
@@ -64,12 +49,10 @@
   </video>
 
   <audio id="music" preload="auto">
-    <source src="music.m4a" type="audio/mp4">
+    <source src="music.mp3" type="audio/mpeg">
   </audio>
 
-  <div id="cover">
-    <div class="fake-btn">Abrir invitación</div>
-  </div>
+  <div id="cover"></div>
 
   <script>
     const cover = document.getElementById("cover");
@@ -78,36 +61,25 @@
 
     let started = false;
 
-    async function startInvitation() {
+    function startInvitation() {
       if (started) return;
       started = true;
 
-      try {
-        video.currentTime = 0;
-        music.currentTime = 0;
+      video.currentTime = 0;
+      music.currentTime = 0;
 
-        const hideCoverWhenVideoStarts = new Promise((resolve) => {
-          const onPlaying = () => {
-            video.removeEventListener("playing", onPlaying);
-            resolve();
-          };
-          video.addEventListener("playing", onPlaying, { once: true });
-        });
+      const playVideo = video.play();
+      const playMusic = music.play();
 
-        const vp = video.play();
-        const mp = music.play();
-
-        await Promise.all([vp, mp, hideCoverWhenVideoStarts]);
-
-        cover.classList.add("hidden");
-      } catch (e) {
-        started = false;
-        console.log("No se pudo iniciar:", e);
-      }
+      Promise.allSettled([playVideo, playMusic]).then(() => {
+        cover.classList.add("hide");
+      }).catch(() => {
+        cover.classList.add("hide");
+      });
     }
 
-    cover.addEventListener("click", startInvitation, { once: true });
-    cover.addEventListener("touchend", startInvitation, { once: true });
+    cover.addEventListener("touchend", startInvitation, { passive: true });
+    cover.addEventListener("click", startInvitation);
   </script>
 
 </body>
