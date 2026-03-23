@@ -13,7 +13,6 @@
             overflow: hidden;
         }
 
-        /* Video siempre listo detrás de la portada */
         video {
             position: fixed;
             top: 0;
@@ -25,7 +24,6 @@
             z-index: 1;
         }
 
-        /* Portada limpia (solo tu imagen) */
         #cover {
             position: fixed;
             top: 0;
@@ -35,7 +33,7 @@
             background: url("cover.jpg") center/cover no-repeat;
             z-index: 10;
             cursor: pointer;
-            transition: opacity 0.4s ease; /* Desvanecimiento suave */
+            transition: opacity 0.4s ease;
         }
     </style>
 </head>
@@ -56,33 +54,46 @@
         const video = document.getElementById("video");
         const music = document.getElementById("music");
 
-        // Intentar precargar los archivos apenas abra la página
+        // Esta variable evita que la función se ejecute más de una vez
+        let isStarted = false;
+
         window.addEventListener('load', () => {
             video.load();
             music.load();
         });
 
         function start(e) {
-            // Evita conflictos entre touch y click
+            // Si ya se inició, no hagas nada (esto evita que se rompa al tocar 2 veces)
+            if (isStarted) return;
+            
+            isStarted = true; // Bloqueamos futuras ejecuciones
+
             if (e) e.preventDefault();
 
-            // 1. Desvanecer la portada visualmente
+            // Desvanecer portada
             cover.style.opacity = "0";
+            cover.style.pointerEvents = "none"; // Desactiva los clics en la portada inmediatamente
 
-            // 2. Reproducción inmediata y simultánea
+            // Ejecución limpia
             music.currentTime = 0;
             video.currentTime = 0;
             
-            music.play();
-            video.play();
+            // Usamos promesas para que el navegador no se confunda
+            const playMusic = music.play();
+            const playVideo = video.play();
 
-            // 3. Eliminar el elemento del DOM tras el desvanecimiento
+            // Manejo silencioso de errores de reproducción
+            Promise.all([playMusic, playVideo]).catch(err => {
+                console.log("Error de reproducción evitado:", err);
+            });
+
+            // Limpieza del DOM tras la animación
             setTimeout(() => {
                 cover.style.display = "none";
             }, 450);
         }
 
-        // 'pointerdown' es la interacción más rápida (al tacto inicial)
+        // Usamos pointerdown para máxima velocidad de respuesta
         cover.addEventListener("pointerdown", start);
     </script>
 
