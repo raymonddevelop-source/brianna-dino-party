@@ -10,9 +10,11 @@
             padding: 0;
             height: 100%;
             background: black;
+            font-family: sans-serif;
             overflow: hidden;
         }
 
+        /* El video ahora está siempre "debajo" listo para verse */
         video {
             position: fixed;
             top: 0;
@@ -21,8 +23,10 @@
             height: 100%;
             object-fit: contain;
             background: black;
+            z-index: 1;
         }
 
+        /* Portada con transición suave */
         #cover {
             position: fixed;
             top: 0;
@@ -35,23 +39,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: opacity 0.5s ease; /* Efecto fade out */
         }
 
-        /* Opcional: un pequeño texto para que el usuario sepa que debe tocar */
         #cover::after {
             content: "TOCA PARA EMPEZAR";
             color: white;
-            font-family: sans-serif;
-            background: rgba(0,0,0,0.5);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
+            background: rgba(0,0,0,0.6);
+            padding: 15px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            letter-spacing: 1px;
         }
     </style>
 </head>
 <body>
 
-    <video id="video" loop playsinline webkit-playsinline muted>
+    <video id="video" loop playsinline webkit-playsinline muted preload="auto">
         <source src="video.mp4" type="video/mp4">
     </video>
 
@@ -66,35 +70,31 @@
         const video = document.getElementById("video");
         const music = document.getElementById("music");
 
-        function start(e) {
-            // Evitamos que el evento se dispare dos veces (click + touch)
-            if (e) e.preventDefault();
+        // Pre-cargar el video para que el primer frame esté listo
+        video.load();
+        music.load();
 
-            // 1. Ocultar la portada
-            cover.style.display = "none";
+        function start() {
+            // 1. Iniciamos la reproducción inmediatamente
+            // Usamos una promesa simple para ambos
+            const playPromiseAudio = music.play();
+            const playPromiseVideo = video.play();
 
-            // 2. Reiniciar tiempos
-            music.currentTime = 0;
-            video.currentTime = 0;
+            // 2. Quitamos la portada visualmente de inmediato
+            cover.style.opacity = "0";
+            
+            // 3. Quitamos la portada del flujo después de la animación para que no estorbe
+            setTimeout(() => {
+                cover.style.display = "none";
+            }, 500);
 
-            // 3. Reproducir Audio (La prioridad para el navegador)
-            const playAudio = music.play();
-
-            if (playAudio !== undefined) {
-                playAudio.then(() => {
-                    // Si el audio arranca, lanzamos el video
-                    video.play();
-                    // Opcional: si quieres que el video tenga su propio audio, 
-                    // quita 'muted' arriba. Si no, déjalo así.
-                }).catch(error => {
-                    console.error("Error al reproducir audio:", error);
-                    // Intento de respaldo si falla
-                    video.play();
-                });
+            // Manejo de errores por si el navegador bloquea algo
+            if (playPromiseAudio !== undefined) {
+                playPromiseAudio.catch(e => console.log("Audio en espera de interacción profunda"));
             }
         }
 
-        // Usamos 'pointerdown' que funciona para mouse y touch de forma unificada
+        // 'pointerdown' es el evento más rápido que existe (antes que el click)
         cover.addEventListener("pointerdown", start);
     </script>
 
